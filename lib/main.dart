@@ -45,14 +45,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   int workTime = 5;
   int breakTime = 3;
   int longBreakTime = 10;
+  int completedWork = 0;
+  int currentWorkTime = 6;
 
   String workMode = 'WORK';
   String breakMode = 'BREAK';
   String longBreakMode = 'LONGBREAK';
   String currentMode = 'WORK';
 
-  int completedWork = 1;
-  int currentWorkTime = 6;
   Timer _timer;
 
   void startTimer() {
@@ -64,14 +64,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           if (currentWorkTime < 1) {
             isPlaying = false;
             timer.cancel();
-            if (completedWork < 3) {
-              if (currentMode == workMode) {
-                currentWorkTime = breakTime;
-                currentMode = breakMode;
-              } else if (currentMode == breakMode) {
-                currentWorkTime = workTime;
-                currentMode = workMode;
-              }
+            if (currentMode == workMode && completedWork >= 2) {
+              currentWorkTime = longBreakTime;
+              currentMode = longBreakMode;
+              completedWork = 0;
+            } else if (currentMode == workMode) {
+              currentWorkTime = breakTime;
+              currentMode = breakMode;
+              completedWork++;
+            } else if (currentMode == breakMode ||
+                currentMode == longBreakMode) {
+              currentWorkTime = workTime;
+              currentMode = workMode;
             }
           } else if (paused) {
             timer.cancel();
