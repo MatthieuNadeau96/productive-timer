@@ -48,10 +48,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   int completedWork = 0;
   int currentWorkTime = 6;
 
-  String workMode = 'WORK';
-  String breakMode = 'BREAK';
-  String longBreakMode = 'LONGBREAK';
-  String currentMode = 'WORK';
+  String workMode = 'Work';
+  String breakMode = 'Break';
+  String longBreakMode = 'Long Break';
+  String currentMode = 'Work';
 
   Timer _timer;
 
@@ -224,6 +224,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   '$currentMode',
                   style: TextStyle(fontSize: 24),
                 ),
+                SizedBox(height: 5),
                 Container(
                   width: 100,
                   child: Row(
