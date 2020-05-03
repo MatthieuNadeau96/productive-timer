@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math show pi;
 import 'package:flutter/material.dart';
 import './counters.dart';
@@ -46,24 +47,42 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   int completedWork = 1;
   int testWorkTime = 5;
   int currentMode = 5;
+  int _start = 10;
+  Timer _timer;
+  bool paused = false;
 
-  String get timerString {
-    Duration duration = controller.duration * controller.value;
-    if (duration.inSeconds == 0) {
-      setState(() {
-        currentMode = 10;
-      });
-    }
-    return '${duration.inMinutes}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
+  void startTimer() {
+    const oneSec = const Duration(seconds: 1);
+    _timer = Timer.periodic(
+      oneSec,
+      (Timer timer) => setState(
+        () {
+          if (_start < 1) {
+            isPlaying = false;
+            timer.cancel();
+          } else if (paused) {
+            timer.cancel();
+            paused = false;
+          } else {
+            isPlaying = true;
+            _start = _start - 1;
+          }
+        },
+      ),
+    );
+  }
+
+  void stopTimer() {
+    setState(() {
+      isPlaying = false;
+      paused = true;
+    });
   }
 
   @override
-  void initState() {
-    super.initState();
-    controller = AnimationController(
-      vsync: this,
-      duration: Duration(seconds: currentMode),
-    );
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 
   @override
@@ -174,56 +193,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   margin: EdgeInsets.symmetric(
                     horizontal: 30,
                   ),
-                  child: Align(
-                    child: AspectRatio(
-                      aspectRatio: 1.0,
-                      child: Stack(
-                        children: <Widget>[
-                          Positioned.fill(
-                            child: AnimatedBuilder(
-                              animation: controller,
-                              builder: (BuildContext context, Widget child) {
-                                return CustomPaint(
-                                  painter: TimerPainter(
-                                    animation: controller,
-                                    backgroundColor: Colors.white,
-                                    color: themeData.primaryColor,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          Stack(
-                            children: <Widget>[
-                              Positioned(
-                                top: 100.0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                child: Align(
-                                  alignment: FractionalOffset.center,
-                                  child: Column(
-                                    children: <Widget>[
-                                      AnimatedBuilder(
-                                        animation: controller,
-                                        builder: (BuildContext context,
-                                            Widget child) {
-                                          return Text(
-                                            timerString,
-                                            style: TextStyle(
-                                                color: themeData
-                                                    .textTheme.title.color,
-                                                fontSize: 60),
-                                          );
-                                        },
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ],
+                  child: Center(
+                    child: Text(
+                      '$_start',
+                      style: TextStyle(
+                        fontSize: 40,
                       ),
                     ),
                   ),
@@ -274,21 +248,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                   icon: Icon(Icons.play_arrow),
                                 ),
                           onTap: () {
-                            if (controller.isAnimating) {
-                              setState(() {
-                                isPlaying = false;
-                              });
-                              controller.stop();
-                            } else {
-                              setState(() {
-                                isPlaying = true;
-                              });
-                              controller.reverse(
-                                from: controller.value == 0.0
-                                    ? 1.0
-                                    : controller.value,
-                              );
-                            }
+                            isPlaying ? stopTimer() : startTimer();
                           },
                         ),
                       ],
@@ -301,36 +261,5 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         ),
       ),
     );
-  }
-}
-
-class TimerPainter extends CustomPainter {
-  TimerPainter({
-    this.animation,
-    this.backgroundColor,
-    this.color,
-  }) : super(repaint: animation);
-
-  final Animation<double> animation;
-  final Color backgroundColor, color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = backgroundColor
-      ..strokeWidth = 5.0
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawCircle(size.center(Offset.zero), size.width / 2.0, paint);
-    paint.color = color;
-    double progress = (1.0 - animation.value) * 2 * math.pi;
-    canvas.drawArc(Offset.zero & size, math.pi * 1.5, -progress, false, paint);
-  }
-
-  @override
-  bool shouldRepaint(TimerPainter old) {
-    return animation.value != old.animation.value ||
-        color != old.color ||
-        backgroundColor != old.backgroundColor;
   }
 }
