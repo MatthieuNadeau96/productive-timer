@@ -47,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   int completedWork = 1;
   int testWorkTime = 5;
   int currentMode = 5;
-  int _start = 10;
+  int currentWorkTime = 10;
   Timer _timer;
   bool paused = false;
 
@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       oneSec,
       (Timer timer) => setState(
         () {
-          if (_start < 1) {
+          if (currentWorkTime < 1) {
             isPlaying = false;
             timer.cancel();
           } else if (paused) {
@@ -65,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             paused = false;
           } else {
             isPlaying = true;
-            _start = _start - 1;
+            currentWorkTime = currentWorkTime - 1;
           }
         },
       ),
@@ -195,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   ),
                   child: Center(
                     child: Text(
-                      '$_start',
+                      '$currentWorkTime',
                       style: TextStyle(
                         fontSize: 40,
                       ),
