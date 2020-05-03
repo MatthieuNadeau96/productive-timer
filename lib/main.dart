@@ -1,111 +1,336 @@
+import 'dart:math' as math show pi;
 import 'package:flutter/material.dart';
+import './counters.dart';
+import './header_button.dart';
+import './playButton.dart';
+import './playButtonPressed.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+        canvasColor: Color(0xffECF0F3),
+        primaryColor: Color(0xff3372F7),
+        textTheme: TextTheme(
+          title: TextStyle(
+            color: Color(0xff2C2C2C),
+          ),
+        ),
+        iconTheme: IconThemeData(
+          color: Color(0xff7D839A),
+        ),
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+  AnimationController controller;
+  bool isPlaying = false;
+  bool muted = false;
+  bool notificationsOff = false;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  int workTime = 1200;
+  int breakTime = 300;
+  int longBreakTime = 1500;
+  int completedWork = 1;
+  int testWorkTime = 5;
+  int currentMode = 5;
+
+  String get timerString {
+    Duration duration = controller.duration * controller.value;
+    if (duration.inSeconds == 0) {
+      setState(() {
+        currentMode = 10;
+      });
+    }
+    return '${duration.inMinutes}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: currentMode),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
+    ThemeData themeData = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xffEEF2F4),
+            themeData.canvasColor,
+            Color(0xffD4D8DB),
+            Color(0xffBDC0C3),
           ],
+          stops: [0.1, 0.3, 0.8, 1],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Container(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 30, vertical: 30.0),
+            child: Column(
+              children: <Widget>[
+                SizedBox(height: 30),
+                Row(
+                  // Header
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    HeaderButton(
+                      toggleHandler: muted,
+                      onPress: () {
+                        setState(() {
+                          muted = !muted;
+                        });
+                      },
+                      icon: muted
+                          ? Icon(
+                              Icons.volume_off,
+                              size: 20,
+                            )
+                          : Icon(
+                              Icons.volume_up,
+                              size: 20,
+                            ),
+                    ),
+                    Text(
+                      'Pomodoro',
+                      style: TextStyle(
+                        color: themeData.textTheme.title.color,
+                        fontSize: 30,
+                      ),
+                    ),
+                    HeaderButton(
+                      toggleHandler: notificationsOff,
+                      onPress: () {
+                        setState(() {
+                          notificationsOff = !notificationsOff;
+                        });
+                      },
+                      icon: notificationsOff
+                          ? Icon(
+                              Icons.notifications_off,
+                              size: 20,
+                            )
+                          : Icon(
+                              Icons.notifications_active,
+                              size: 20,
+                            ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 60),
+                // Countdown Timer
+                Container(
+                  height: 275,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).canvasColor,
+                    borderRadius: BorderRadius.all(Radius.circular(200)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xffA5A8AB),
+                        offset: Offset(4.0, 4.0),
+                        blurRadius: 15.0,
+                        spreadRadius: 1.0,
+                      ),
+                      BoxShadow(
+                        color: Color(0xffffffff),
+                        offset: Offset(-4.0, -4.0),
+                        blurRadius: 15.0,
+                        spreadRadius: 1.0,
+                      ),
+                    ],
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xffEEF2F4),
+                        themeData.canvasColor,
+                        Color(0xffD4D8DB),
+                        Color(0xffBDC0C3),
+                      ],
+                      stops: [0.1, 0.3, 0.8, 1],
+                    ),
+                  ),
+                  margin: EdgeInsets.symmetric(
+                    horizontal: 30,
+                  ),
+                  child: Align(
+                    child: AspectRatio(
+                      aspectRatio: 1.0,
+                      child: Stack(
+                        children: <Widget>[
+                          Positioned.fill(
+                            child: AnimatedBuilder(
+                              animation: controller,
+                              builder: (BuildContext context, Widget child) {
+                                return CustomPaint(
+                                  painter: TimerPainter(
+                                    animation: controller,
+                                    backgroundColor: Colors.white,
+                                    color: themeData.primaryColor,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          Stack(
+                            children: <Widget>[
+                              Positioned(
+                                top: 100.0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                child: Align(
+                                  alignment: FractionalOffset.center,
+                                  child: Column(
+                                    children: <Widget>[
+                                      AnimatedBuilder(
+                                        animation: controller,
+                                        builder: (BuildContext context,
+                                            Widget child) {
+                                          return Text(
+                                            timerString,
+                                            style: TextStyle(
+                                                color: themeData
+                                                    .textTheme.title.color,
+                                                fontSize: 60),
+                                          );
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 30),
+                Text(
+                  'Work',
+                  style: TextStyle(fontSize: 24),
+                ),
+                Container(
+                  width: 100,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      (completedWork >= 1
+                          ? Counters(completed: true)
+                          : Counters(
+                              completed: false,
+                            )),
+                      (completedWork >= 2
+                          ? Counters(completed: true)
+                          : Counters(
+                              completed: false,
+                            )),
+                      (completedWork >= 3
+                          ? Counters(completed: true)
+                          : Counters(
+                              completed: false,
+                            )),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 30),
+                // Play Pause Button
+                Expanded(
+                  child: Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        GestureDetector(
+                          child: isPlaying
+                              ? PlayButtonPressed(
+                                  icon: Icon(
+                                    Icons.pause,
+                                  ),
+                                )
+                              : PlayButton(
+                                  icon: Icon(Icons.play_arrow),
+                                ),
+                          onTap: () {
+                            if (controller.isAnimating) {
+                              setState(() {
+                                isPlaying = false;
+                              });
+                              controller.stop();
+                            } else {
+                              setState(() {
+                                isPlaying = true;
+                              });
+                              controller.reverse(
+                                from: controller.value == 0.0
+                                    ? 1.0
+                                    : controller.value,
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
+  }
+}
+
+class TimerPainter extends CustomPainter {
+  TimerPainter({
+    this.animation,
+    this.backgroundColor,
+    this.color,
+  }) : super(repaint: animation);
+
+  final Animation<double> animation;
+  final Color backgroundColor, color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = Paint()
+      ..color = backgroundColor
+      ..strokeWidth = 5.0
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawCircle(size.center(Offset.zero), size.width / 2.0, paint);
+    paint.color = color;
+    double progress = (1.0 - animation.value) * 2 * math.pi;
+    canvas.drawArc(Offset.zero & size, math.pi * 1.5, -progress, false, paint);
+  }
+
+  @override
+  bool shouldRepaint(TimerPainter old) {
+    return animation.value != old.animation.value ||
+        color != old.color ||
+        backgroundColor != old.backgroundColor;
   }
 }
