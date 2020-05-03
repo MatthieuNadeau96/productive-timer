@@ -36,17 +36,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-  AnimationController controller;
+  // AnimationController controller;
   bool isPlaying = false;
   bool muted = false;
   bool notificationsOff = false;
   bool paused = false;
 
-  int workTime = 5;
-  int breakTime = 3;
-  int longBreakTime = 10;
+  int workTime = 1500;
+  int breakTime = 300;
+  int longBreakTime = 1200;
   int completedWork = 0;
-  int currentWorkTime = 6;
+  int currentWorkTime = 1500;
 
   String workMode = 'Work';
   String breakMode = 'Break';
@@ -94,6 +94,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       isPlaying = false;
       paused = true;
     });
+  }
+
+  String formatTime(double time) {
+    Duration duration = Duration(seconds: time.round());
+    return [duration.inMinutes, duration.inSeconds]
+        .map((seg) => seg.remainder(60).toString().padLeft(2, '0'))
+        .join(':');
   }
 
   @override
@@ -212,7 +219,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   ),
                   child: Center(
                     child: Text(
-                      '$currentWorkTime',
+                      formatTime(currentWorkTime.toDouble()),
                       style: TextStyle(
                         fontSize: 40,
                       ),
