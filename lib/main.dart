@@ -72,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  void stopTimer() {
+  void pauseTimer() {
     setState(() {
       isPlaying = false;
       paused = true;
@@ -248,7 +248,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                   icon: Icon(Icons.play_arrow),
                                 ),
                           onTap: () {
-                            isPlaying ? stopTimer() : startTimer();
+                            isPlaying ? pauseTimer() : startTimer();
                           },
                         ),
                       ],
