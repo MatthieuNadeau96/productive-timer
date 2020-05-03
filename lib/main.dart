@@ -40,16 +40,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool isPlaying = false;
   bool muted = false;
   bool notificationsOff = false;
-
-  int workTime = 1200;
-  int breakTime = 300;
-  int longBreakTime = 1500;
-  int completedWork = 1;
-  int testWorkTime = 5;
-  int currentMode = 5;
-  int currentWorkTime = 10;
-  Timer _timer;
   bool paused = false;
+
+  int workTime = 5;
+  int breakTime = 3;
+  int longBreakTime = 10;
+
+  String workMode = 'WORK';
+  String breakMode = 'BREAK';
+  String longBreakMode = 'LONGBREAK';
+  String currentMode = 'WORK';
+
+  int completedWork = 1;
+  int currentWorkTime = 6;
+  Timer _timer;
 
   void startTimer() {
     const oneSec = const Duration(seconds: 1);
@@ -60,6 +64,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           if (currentWorkTime < 1) {
             isPlaying = false;
             timer.cancel();
+            if (completedWork < 3) {
+              if (currentMode == workMode) {
+                currentWorkTime = breakTime;
+                currentMode = breakMode;
+              } else if (currentMode == breakMode) {
+                currentWorkTime = workTime;
+                currentMode = workMode;
+              }
+            }
           } else if (paused) {
             timer.cancel();
             paused = false;
@@ -204,7 +217,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ),
                 SizedBox(height: 30),
                 Text(
-                  'Work',
+                  '$currentMode',
                   style: TextStyle(fontSize: 24),
                 ),
                 Container(
